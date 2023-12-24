@@ -195,6 +195,16 @@ service的Restart参数有:
 - on-abnormal：只有在服务以异常的方式终止时才会自动重启。
 - always：无论服务以何种方式终止，systemd 都会尝试自动重新启动服务。
 
+## 客户端
+1. 安装依赖
+   ```shell
+   go mod tidy
+   ```
+2. 运行
+   ```shell
+   go run main.go
+   ````
+
 ## 排错
 启动redis服务
 ```shell
