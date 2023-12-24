@@ -18,7 +18,7 @@ func main() {
 
 	// 从 v8 开始，您可以使用实验性 NewFailoverClusterClient 命令将只读命令路由到从节点
 	client := redis.NewFailoverClusterClient(&redis.FailoverOptions{
-		MasterName:     "master",
+		MasterName:     "master1",
 		SentinelAddrs:  []string{"192.168.2.155:26379", "192.168.2.158:26379", "192.168.2.152:26379"},
 		Password:       "263393", // 如果有密码，请填写
 		DB:             0,

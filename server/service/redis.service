@@ -1,0 +1,17 @@
+[Unit]
+Description=Redis Status
+After=network.target
+
+[Service]
+Type=notify
+KillMode=control-group
+PIDFile=/var/run/redis_6379.pid
+ExecStart=redis-server $REDIS_HOME/conf/redis.conf
+ExecStartPost=/bin/sh -c "echo $MAINPID > /var/run/redis_6379.pid"
+ExecReload=/bin/kill -QUIT $MAINPID ; redis-server $REDIS_HOME/conf/redis.conf
+ExecStop=redis-cli -a $REDIS_PASSWORD -p $REDIS_PORT shutdown
+ExecStopPost=tail -n 7 logs/redis.log
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

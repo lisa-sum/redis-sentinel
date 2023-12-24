@@ -53,14 +53,26 @@ requirepass $REDIS_PASSWORD
 #1380行，开启AOF
 appendonly yes
 
+# 创建用户master1, 并设置密码, 并授权所有权限, 除了-flushdb -flushall -config
+user master1 on >263393 allcommands -flushdb -flushall -config ~* allchannels
+# 禁用默认账号
+user default off -@all
+
 #528行，指定要同步的Master节点IP和端口
-replicaof $MASTER_IP
+replicaof $MASTER_IP $REDIS_PORT
 
 #535行，可选，指定Master节点的密码，仅在Master节点设置了requirepass
 masterauth $REDIS_PASSWORD
 
 # redis为编译安装时, 需要编写进程持久化时, 需要设置supervised参数, 可选值为systemd, upstart, auto, no
 supervised systemd
+
+# 在主节点检测到它不再能够将其写入传输到指定数量的副本时停止接受写入
+# 如果有一个节点的redis异常时, 可能会继续将数据写入旧主服务器。此数据将永远丢失，因为当分区愈合时，主服务器将被重新配置为新主服务器的副本，从而丢弃其数据集
+# 使用以下 Redis 复制功能缓解此问题，该功能允许在主节点检测到它不再能够将其写入传输到指定数量的副本时停止接受写入
+# 通过此优化，如果从节点全部不可用，主服务器将停止接受写入。根据你的实践需求进行权衡
+min-replicas-to-write 3
+min-replicas-max-lag 10
 EOF
 
 # 编写redis.service守护进程文件
@@ -70,15 +82,14 @@ Description=Redis Status
 After=network.target
 
 [Service]
-Type=notify
-KillMode=control-group
-PIDFile=/var/run/redis_6379.pid
-ExecStart=redis-server $REDIS_HOME/conf/redis.conf
-ExecStartPost=/bin/sh -c "echo $MAINPID > /var/run/redis_6379.pid"
-ExecReload=/bin/kill -USR2 $MAINPID && redis-server $REDIS_HOME/conf/redis.conf
-ExecStop=redis-cli -a $REDIS_PASSWORD -p $REDIS_PORT shutdown
-ExecStopPost=tail -n 10 logs/redis.log
-Restart=on-failure
+# Type=simple
+Type=forking
+User=root
+Group=root
+ExecStart=/usr/local/bin/redis-server $REDIS_HOME/conf/redis.conf
+# ExecStartPost=/bin/sh -c "echo $MAINPID > /var/run/redis.pid"
+ExecStop=/usr/local/bin/redis-cli -a $REDIS_PASSWORD -p $REDIS_PORT shutdown
+Restart=no
 
 [Install]
 WantedBy=multi-user.target
@@ -86,6 +97,8 @@ EOF
 
 # 重新加载service
 sudo systemctl daemon-reload
+
+sleep 1
 
 # 重启redis读取最新修改的配置文件
 systemctl restart redis.service
