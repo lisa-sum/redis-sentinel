@@ -45,7 +45,9 @@ logfile "/home/redis/logs/sentinel.log"
 masterauth $REDIS_PASSWORD
 
 # 创建用户master1, 并设置密码, 并授权所有权限, 除了-flushdb -flushall -config
-user master1 on >$REDIS_PASSWORD allcommands -flushdb -flushall -config ~* allchannels
+# user master1 on >$REDIS_PASSWORD allcommands -flushdb -flushall -config ~* allchannels
+
+user master1 on >$REDIS_PASSWORD allcommands ~* allchannels
 # 禁用默认账号
 user default off -@all
 
