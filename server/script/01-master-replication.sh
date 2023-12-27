@@ -95,6 +95,7 @@ sleep 1
 
 # 重启redis读取最新修改的配置文件
 systemctl start redis.service
+systemctl enable redis
 
 set +x  # 出错退出
 

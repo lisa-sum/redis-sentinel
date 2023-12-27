@@ -122,6 +122,9 @@ systemctl start redis-sentinel.service
 echo "查看哨兵信息"
 redis-cli -a "$REDIS_PASSWORD" -p "$SENTINEL_PORT" info Sentinel
 
+
+systemctl enable redis-sentinel
+
 set +x  # 出错退出
 
 # rm -rf sentinel.sh  && vi ./sentinel.sh
